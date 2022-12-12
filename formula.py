@@ -1,16 +1,68 @@
 from enum import Enum
+from typing import *
 
 class GLFormula:
     pass
 
+
 class Connectives(Enum):
-    AND = 1
-    OR = 2
-    IMPLIES = 3
+    AND = 0
+    OR = 1
+    IMPLIES = 2
+
+    def __str__(self):
+        return ["⋀", "⋁", "⭢"][self.value]
 
 
+class Atom(GLFormula):
+    def __init__(self, ident: str):
+        self.ident = ident
+
+    def __str__(self):
+        return self.ident
 
 
+class Conjunction(GLFormula):
+    def __init__(self, conj: Connectives, left: GLFormula, right: GLFormula):
+        self.conj = conj
+        self.left = left
+        self.right = right
+
+    def __str__(self):
+        return f'({self.left} {self.conj} {self.right})'
 
 
+def And(left, right):
+    return Conjunction(Connectives.AND, left, right)
 
+
+def Or(left, right):
+    return Conjunction(Connectives.OR, left, right)
+
+
+def Implies(left, right):
+    return Conjunction(Connectives.IMPLIES, left, right)
+
+
+class Not(GLFormula):
+    def __init__(self, f: GLFormula):
+        self.f = f
+
+    def __str__(self):
+        return "¬" + str(self.f)
+
+
+class Box(GLFormula):
+    def __init__(self, f: GLFormula):
+        self.f = f
+
+    def __str__(self):
+        return "☐" + str(self.f)
+
+
+class Diamond(GLFormula):
+    def __init__(self, f: GLFormula):
+        self.f = f
+
+    def __str__(self):
+        return "♢" + str(self.f)
