@@ -21,6 +21,8 @@ class Atom(GLFormula):
     def __str__(self):
         return self.ident
 
+    def is_false(self) -> bool:
+        return self.ident == "⊥"
 
 class Conjunction(GLFormula):
     def __init__(self, conj: Connectives, left: GLFormula, right: GLFormula):
@@ -32,16 +34,9 @@ class Conjunction(GLFormula):
         return f'({self.left} {self.conj} {self.right})'
 
 
-def And(left, right):
-    return Conjunction(Connectives.AND, left, right)
-
-
-def Or(left, right):
-    return Conjunction(Connectives.OR, left, right)
-
-
-def Implies(left, right):
-    return Conjunction(Connectives.IMPLIES, left, right)
+def And(left: GLFormula, right: GLFormula): return Conjunction(Connectives.AND, left, right)
+def Or(left: GLFormula, right: GLFormula): return Conjunction(Connectives.OR, left, right)
+def Implies(left: GLFormula, right: GLFormula): return Conjunction(Connectives.IMPLIES, left, right)
 
 
 class Not(GLFormula):
@@ -66,3 +61,7 @@ class Diamond(GLFormula):
 
     def __str__(self):
         return "♢" + str(self.f)
+
+
+GLFalse: GLFormula = Atom("⊥")
+GLTrue: GLFormula = Not(Atom("⊥"))
