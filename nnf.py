@@ -1,12 +1,11 @@
 from formula import *
 
-def presimplify(formula):
+
+def presimplify(formula: GLFormula) -> GLFormula:
     if formula.head == HeadSymbol.NOT and formula.f.head == HeadSymbol.NOT:
         return formula.f.f
     if formula.head == HeadSymbol.AND:
-        if formula.left == GLFalse:
-            return GLFalse
-        if formula.right == GLFalse:
+        if formula.left == GLFalse or formula.right == GLFalse:
             return GLFalse
         if formula.left == GLTrue:
             return formula.right
@@ -17,20 +16,17 @@ def presimplify(formula):
             return formula.right
         if formula.right == GLFalse:
             return formula.left
-        if formula.left == GLTrue:
-            return GLTrue
-        if formula.right == GLTrue:
+        if formula.left == GLTrue or formula.right == GLTrue:
             return GLTrue
     if formula.head == HeadSymbol.IMPLIES:
-        if formula.left == GLFalse:
-            return GLTrue
-        if formula.right == GLTrue:
+        if formula.left == GLFalse or formula.right == GLTrue:
             return GLTrue
         if formula.left == GLTrue:
             return formula.right
         if formula.right == GLFalse:
             return Not(formula.left)
     return formula
+
 
 def simplify(formula):
     if formula.head == HeadSymbol.NOT:
@@ -79,5 +75,4 @@ def nnf(formula: GLFormula) -> GLFormula:
 
 
 if __name__ == "__main__":
-    print(nnf(Box(Not(Not(GLFalse)))))
-
+    print(nnf(Implies(Atom("A"), Atom("B"))))

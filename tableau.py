@@ -3,8 +3,9 @@ import copy
 from formula import *
 from typing import *
 from nnf import nnf
+import itertools
 
-DEBUG = True
+DEBUG = False
 
 
 class TableauNode:
@@ -87,14 +88,31 @@ class TableauNode:
         return all(any(c.is_closed() for c in child.expand_diamonds()) for child in children)
 
 
-def test():
-    formulas: Set[GLFormula] = {
-        Diamond(Not(GLFalse)), # Theory is consistent
-        Box(Diamond(Not(GLFalse)))  # Theory proves it is consistent
-    }
-    node = TableauNode(formulas)
-    print(node.is_closed())
+def inconsistent(formulas: Iterable[GLFormula]) -> bool:
+    """Decides whether a collection of formulas is inconsistent"""
+    return TableauNode({nnf(f) for f in formulas}).is_closed()
+
+
+def implies(hyp: Iterable[GLFormula], tgt: GLFormula) -> bool:
+    """Decides whether hyp |- tgt"""
+    fs: Iterable[GLFormula] = itertools.chain(hyp, [Not(tgt)])
+    return inconsistent(fs)
+
+
+# def test():
+    # formulas: Set[GLFormula] = {
+    #     Diamond(Not(GLFalse)), # Theory is consistent
+    #     Box(Diamond(Not(GLFalse)))  # Theory proves it is consistent
+    # }
+    # node = TableauNode(formulas)
+    # print(node.is_closed())
 
 
 if __name__ == "__main__":
-    test()
+    is_consistent = Diamond(GLTrue)
+    print(implies(
+        [is_consistent],
+        Not(Box(is_consistent))
+    ))
+
+

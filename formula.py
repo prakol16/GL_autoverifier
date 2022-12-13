@@ -1,7 +1,8 @@
 from abc import abstractmethod
 from enum import Enum
 from dataclasses import dataclass
-
+from functools import reduce
+from typing import List
 
 class HeadSymbol(Enum):
     AND = 0
@@ -99,7 +100,9 @@ class Diamond(GLFormula):
 GLFalse: GLFormula = Atom("⊥")
 GLTrue: GLFormula = Not(Atom("⊥"))
 
-def And(left: GLFormula, right: GLFormula): return Conjunction(Connectives.AND, left, right)
-def Or(left: GLFormula, right: GLFormula): return Conjunction(Connectives.OR, left, right)
-def Implies(left: GLFormula, right: GLFormula): return Conjunction(Connectives.IMPLIES, left, right)
 
+def connect(conj: Connectives, fs: List[GLFormula]) -> GLFormula:
+    return reduce(lambda x, y: Conjunction(conj, x, y), fs)
+def And(*fs) -> GLFormula: return connect(Connectives.AND, fs)
+def Or(*fs) -> GLFormula: return connect(Connectives.OR, fs)
+def Implies(left: GLFormula, right: GLFormula): return Conjunction(Connectives.IMPLIES, left, right)
