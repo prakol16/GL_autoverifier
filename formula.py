@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from enum import Enum
 from dataclasses import dataclass
 
