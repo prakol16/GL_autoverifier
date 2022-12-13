@@ -3,29 +3,10 @@ import copy
 from formula import *
 from typing import *
 from nnf import nnf
+from and_or_tree import Tree
 import itertools
 
 DEBUG = False
-DEBUG_DEPTH = 0
-
-def any_none(ls: Iterable[Optional[bool]]) -> Optional[bool]:
-    """Returns true if any of inputs are true, and none if any are none"""
-    for x in ls:
-        if x is None:
-            return None
-        if x:
-            return True
-    return False
-
-
-def all_none(ls: Iterable[Optional[bool]]) -> Optional[bool]:
-    """Returns true if all values are true, none if any are none"""
-    for x in ls:
-        if x is None:
-            return None
-        if not x:
-            return False
-    return True
 
 
 class TableauNode:
@@ -49,7 +30,6 @@ class TableauNode:
 
     def expand_conjunctions(self):
         """Expand non-branching patterns i.e. conjunctions"""
-        new_formulas = {}
         while self.formulas[HeadSymbol.AND]:
             f: Conjunction = self.formulas[HeadSymbol.AND].pop()
             self.add_formula(f.left)
@@ -86,8 +66,6 @@ class TableauNode:
 
     def expand_diamonds(self) -> Iterable[TableauNode]:
         """Expand diamonds"""
-        if DEBUG:
-            print("\t" * DEBUG_DEPTH + "Expanding diamonds in ", self)
         for f in self.formulas[HeadSymbol.DIAMOND]:
             new_node = TableauNode(set())
             new_node.formulas[HeadSymbol.BOX] = self.formulas[HeadSymbol.BOX].copy()
@@ -95,8 +73,7 @@ class TableauNode:
                 new_node.add_formula(g.f)
             new_node.add_formula(f.f)
             new_node.add_formula(nnf(Box(Not(f.f))))
-            if new_node.formulas != self.formulas:
-                yield new_node
+            yield new_node
 
     def is_contradiction(self) -> bool:
         # Checks if there is an atom whose negation is also in the formula
@@ -105,24 +82,11 @@ class TableauNode:
                 return True
         return False
 
-    def is_closed(self, max_depth=2**32) -> Optional[bool]:
-        global DEBUG_DEPTH
-        if DEBUG:
-            print("\t" * DEBUG_DEPTH + "Determining if", self, "is closed, depth", max_depth)
-            DEBUG_DEPTH += 1
-        children = self.expand_proposition()
-        if DEBUG:
-            print("\t" * DEBUG_DEPTH + "Num Children", len(children))
-
-        res = None
-        for depth in range(max_depth):
-            res = all_none(any_none(c.is_closed(depth) for c in child.expand_diamonds()) for child in children)
-            if res is not None:
-                break
-
-        DEBUG_DEPTH -= 1
-        return res
-
+    def is_closed(self, debug=DEBUG) -> bool:
+        tree: Tree[TableauNode] = Tree(self,
+            expand_and=lambda n: copy.copy(n).expand_proposition(),
+            expand_or=lambda n: list(n.expand_diamonds()))
+        return tree.search(debug)
 
 def is_unsat(formulas: Iterable[GLFormula]) -> bool:
     """Decides whether a collection of formulas is inconsistent"""
@@ -146,9 +110,20 @@ if __name__ == "__main__":
 
     # ☐(♢♢A ⋁ ☐☐¬A), ♢♢A, ♢A
     # ☐(♢♢A ⋁ ☐☐¬A), ♢A, ☐¬♢A, ♢♢A
+
+    # ♢(♢♢A ⋁ ☐♢A)
+    # (♢♢A ⋁ ☐♢A), ☐(¬♢♢A AND ¬☐♢A),
+    # ♢♢A, ☐(☐☐¬A AND ♢☐¬A)
+    #  - ♢A, ☐☐¬A, ♢☐¬A, ☐(☐☐¬A AND ♢☐¬A)
+    #     - A,  ☐☐¬A, ☐¬A, (☐☐¬A AND ♢☐¬A),  ☐(☐☐¬A AND ♢☐¬A)
+    #     - ☐¬A, ☐♢A, ☐☐¬A, ☐¬A, ☐(☐☐¬A AND ♢☐¬A), (☐☐¬A AND ♢☐¬A)
+    # ☐♢A
+    #  - ☐♢A, ☐(☐☐¬A AND ♢☐¬A)
     A = Atom("A")
     B = Atom("B")
-    print(is_valid([Box(Implies(A, B)), Box(A)], Box(B)))
-    # print(is_valid([], F))
+    C = Atom("C")
+    is_consistent = Diamond(GLTrue)
+    f = Diamond(Or(Diamond(Diamond(Not(A))), Box(Diamond(Not(A)))))
+    print(is_unsat([f]))
 
 # diamond(box(R)), box(diamond(box(R)))
