@@ -55,6 +55,10 @@ def prennf(formula):
         return And(prennf(Not(formula.f.left)), prennf(Not(formula.f.right)))
     if formula.head == HeadSymbol.NOT and formula.f.head == HeadSymbol.IMPLIES:
         return And(prennf(formula.f.left), prennf(Not(formula.f.right)))
+    if formula.head == HeadSymbol.NOT and formula.f.head == HeadSymbol.BOX:
+        return Diamond(prennf(Not(formula.f.f)))
+    if formula.head == HeadSymbol.NOT and formula.f.head == HeadSymbol.DIAMOND:
+        return Box(prennf(Not(formula.f.f)))
     return formula
 
 def nnf(formula):
