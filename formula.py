@@ -40,6 +40,7 @@ class Atom(GLFormula):
     def is_false(self) -> bool:
         return self.ident == "⊥"
 
+    @property
     def head(self) -> HeadSymbol:
         return HeadSymbol.ATOM
 
@@ -53,6 +54,7 @@ class Conjunction(GLFormula):
     def __str__(self):
         return f'({self.left} {self.conj} {self.right})'
 
+    @property
     def head(self) -> HeadSymbol:
         return self.conj.to_head()
 
@@ -64,6 +66,7 @@ class Not(GLFormula):
     def __str__(self):
         return "¬" + str(self.f)
 
+    @property
     def head(self) -> HeadSymbol:
         return HeadSymbol.NOT
 
@@ -75,6 +78,7 @@ class Box(GLFormula):
     def __str__(self):
         return "☐" + str(self.f)
 
+    @property
     def head(self) -> HeadSymbol:
         return HeadSymbol.BOX
 
@@ -86,6 +90,7 @@ class Diamond(GLFormula):
     def __str__(self):
         return "♢" + str(self.f)
 
+    @property
     def head(self) -> HeadSymbol:
         return HeadSymbol.DIAMOND
 
