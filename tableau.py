@@ -8,6 +8,25 @@ import itertools
 DEBUG = False
 DEBUG_DEPTH = 0
 
+def any_none(ls: Iterable[Optional[bool]]) -> Optional[bool]:
+    """Returns true if any of inputs are true, and none if any are none"""
+    for x in ls:
+        if x is None:
+            return None
+        if x:
+            return True
+    return False
+
+
+def all_none(ls: Iterable[Optional[bool]]) -> Optional[bool]:
+    """Returns true if all values are true, none if any are none"""
+    for x in ls:
+        if x is None:
+            return None
+        if not x:
+            return False
+    return True
+
 
 class TableauNode:
     formulas: Dict[HeadSymbol, Set[GLFormula]]
@@ -86,14 +105,21 @@ class TableauNode:
                 return True
         return False
 
-    def is_closed(self) -> bool:
+    def is_closed(self, max_depth=2**32) -> Optional[bool]:
         global DEBUG_DEPTH
         if DEBUG:
-            print("\t" * DEBUG_DEPTH + "Determining if", self, "is closed")
+            print("\t" * DEBUG_DEPTH + "Determining if", self, "is closed, depth", max_depth)
             DEBUG_DEPTH += 1
         children = self.expand_proposition()
-        print("\t" * DEBUG_DEPTH + "Num Children", len(children))
-        res = all(any(c.is_closed() for c in child.expand_diamonds()) for child in children)
+        if DEBUG:
+            print("\t" * DEBUG_DEPTH + "Num Children", len(children))
+
+        res = None
+        for depth in range(max_depth):
+            res = all_none(any_none(c.is_closed(depth) for c in child.expand_diamonds()) for child in children)
+            if res is not None:
+                break
+
         DEBUG_DEPTH -= 1
         return res
 
@@ -115,9 +141,14 @@ def is_sat(formulas: Iterable[GLFormula]):
 
 if __name__ == "__main__":
     # ♢☐R, ♢¬R, R, ☐♢☐R, ☐♢¬R, ☐R
-    # ♢☐R, ♢¬R, R, ☐♢☐R, ☐♢¬R, ☐R
-    R = Atom("S")
-    F = Diamond(Box(R))
-    print(is_unsat([F, Diamond(Not(R)), R, Box(F), Box(Diamond(Not(R))), Box(R)]))
+    # ♢(☐R or ☐R), ♢¬R, R, ☐♢☐R, ☐♢¬R, (☐R or ☐R)
+    # (¬☐¬☐(¬A ⋁ A) ⭢ ♢☐¬☐A)
+
+    # ☐(♢♢A ⋁ ☐☐¬A), ♢♢A, ♢A
+    # ☐(♢♢A ⋁ ☐☐¬A), ♢A, ☐¬♢A, ♢♢A
+    A = Atom("A")
+    B = Atom("B")
+    print(is_valid([Box(Implies(A, B)), Box(A)], Box(B)))
+    # print(is_valid([], F))
 
 # diamond(box(R)), box(diamond(box(R)))

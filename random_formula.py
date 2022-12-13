@@ -2,10 +2,11 @@ import random
 import timeit
 from formula import *
 from tableau import is_valid, is_sat
+from nnf import nnf
 
-def rand_formula(depth):
+def rand_formula(depth: int) -> GLFormula:
     if depth == 0:
-        atom = Atom(chr(random.randint(ord('A'), ord('Z'))))
+        atom = Atom(chr(random.randint(ord('A'), ord('A'))))
         if random.choice([True, False]):
             return atom
         else:
@@ -29,15 +30,28 @@ def rand_formula(depth):
         else:
             return Not(Diamond(rand_formula(depth-1)))
 
+
 def is_valid_rand():
-    return is_valid(rand_formula(4))
+    return is_valid([], rand_formula(4))
 
 #print(timeit.timeit(is_valid_rand))
-
-for i in range(100000):
-    formula = rand_formula(4)
-    try:
-        is_valid(formula)
-    except:
-        print(formula)
-        break
+if __name__ == "__main__":
+    # ¬(¬(¬((S ⋀ ¬G) ⭢ ¬(¬G ⭢ J)) ⭢ ¬♢¬(¬C ⋀ P)) ⋀ ¬♢☐♢R)
+    # formula = Not(Not(Not()))
+    # ☐¬(☐(¬J ⋀ ¬B) ⭢ ¬♢☐R)
+    # formula = Box(Not(Implies(Box(And(Not(Atom("J")), Not(Atom("B")))), Not(Diamond(Box(Atom("R")))))))
+    # print(formula)
+    # # print(nnf(Not(formula)))
+    #
+    # (¬☐¬☐(¬A ⋁ A) ⭢ ♢☐¬☐A)
+    # random.seed(11)
+    # A = Atom("A")
+    # formula = Diamond(And(Box(Box(Not(A))), Diamond(Diamond(A))))
+    # print(is_sat([formula]))
+    for i in range(10000):
+        formula = rand_formula(4)
+        try:
+            is_sat([formula])
+        except:
+            print(formula)
+            break
