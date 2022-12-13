@@ -1,11 +1,11 @@
 from __future__ import annotations
 import copy
-
 from formula import *
 from typing import *
-
+from nnf import nnf
 
 DEBUG = True
+
 
 class TableauNode:
     formulas: Dict[HeadSymbol, Set[GLFormula]]
@@ -70,7 +70,7 @@ class TableauNode:
             for g in self.formulas[HeadSymbol.BOX]:
                 new_node.add_formula(g.f)
             new_node.add_formula(f.f)
-            new_node.add_formula(Box(Not(f.f)))  # TODO: simplify this
+            new_node.add_formula(nnf(Box(Not(f.f))))
             yield new_node
 
     def is_contradiction(self) -> bool:

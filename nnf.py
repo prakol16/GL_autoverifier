@@ -3,30 +3,33 @@ from formula import *
 def presimplify(formula):
     if formula.head == HeadSymbol.NOT and formula.f.head == HeadSymbol.NOT:
         return formula.f.f
-    if formula.head == HeadSymbol.AND and formula.left == GLFalse:
-        return GLFalse
-    if formula.head == HeadSymbol.AND and formula.right == GLFalse:
-        return GLFalse
-    if formula.head == HeadSymbol.AND and formula.left == GLTrue:
-        return formula.right
-    if formula.head == HeadSymbol.AND and formula.right == GLTrue:
-        return formula.left
-    if formula.head == HeadSymbol.OR and formula.left == GLFalse:
-        return formula.right
-    if formula.head == HeadSymbol.OR and formula.right == GLFalse:
-        return formula.left
-    if formula.head == HeadSymbol.OR and formula.left == GLTrue:
-        return GLTrue
-    if formula.head == HeadSymbol.OR and formula.right == GLTrue:
-        return GLTrue
-    if formula.head == HeadSymbol.IMPLIES and formula.left == GLFalse:
-        return GLTrue
-    if formula.head == HeadSymbol.IMPLIES and formula.right == GLTrue:
-        return GLTrue
-    if formula.head == HeadSymbol.IMPLIES and formula.left == GLTrue:
-        return formula.right
-    if formula.head == HeadSymbol.IMPLIES and formula.right == GLFalse:
-        return Not(formula.left)
+    if formula.head == HeadSymbol.AND:
+        if formula.left == GLFalse:
+            return GLFalse
+        if formula.right == GLFalse:
+            return GLFalse
+        if formula.left == GLTrue:
+            return formula.right
+        if formula.right == GLTrue:
+            return formula.left
+    if formula.head == HeadSymbol.OR:
+        if formula.left == GLFalse:
+            return formula.right
+        if formula.right == GLFalse:
+            return formula.left
+        if formula.left == GLTrue:
+            return GLTrue
+        if formula.right == GLTrue:
+            return GLTrue
+    if formula.head == HeadSymbol.IMPLIES:
+        if formula.left == GLFalse:
+            return GLTrue
+        if formula.right == GLTrue:
+            return GLTrue
+        if formula.left == GLTrue:
+            return formula.right
+        if formula.right == GLFalse:
+            return Not(formula.left)
     return formula
 
 def simplify(formula):
@@ -61,7 +64,11 @@ def prennf(formula):
         return Box(prennf(Not(formula.f.f)))
     return formula
 
-def nnf(formula):
+
+def nnf(formula: GLFormula) -> GLFormula:
     return prennf(simplify(formula))
 
+
+if __name__ == "__main__":
+    print(nnf(Box(Not(Not(GLFalse)))))
 
