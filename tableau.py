@@ -88,31 +88,24 @@ class TableauNode:
         return all(any(c.is_closed() for c in child.expand_diamonds()) for child in children)
 
 
-def inconsistent(formulas: Iterable[GLFormula]) -> bool:
+def is_unsat(formulas: Iterable[GLFormula]) -> bool:
     """Decides whether a collection of formulas is inconsistent"""
     return TableauNode({nnf(f) for f in formulas}).is_closed()
 
 
-def implies(hyp: Iterable[GLFormula], tgt: GLFormula) -> bool:
+def is_valid(hyp: Iterable[GLFormula], tgt: GLFormula) -> bool:
     """Decides whether hyp |- tgt"""
     fs: Iterable[GLFormula] = itertools.chain(hyp, [Not(tgt)])
-    return inconsistent(fs)
+    return is_unsat(fs)
 
-
-# def test():
-    # formulas: Set[GLFormula] = {
-    #     Diamond(Not(GLFalse)), # Theory is consistent
-    #     Box(Diamond(Not(GLFalse)))  # Theory proves it is consistent
-    # }
-    # node = TableauNode(formulas)
-    # print(node.is_closed())
+def is_sat(formulas: Iterable[GLFormula]):
+    """Decides whether a collection of formulas is satisfiable"""
+    return not is_unsat(formulas)
 
 
 if __name__ == "__main__":
     is_consistent = Diamond(GLTrue)
-    print(implies(
+    print(is_valid(
         [is_consistent],
         Not(Box(is_consistent))
     ))
-
-
