@@ -1,4 +1,5 @@
 from formula import *
+from nnf import *
 
 
 if __name__ == "__main__":
