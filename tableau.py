@@ -4,7 +4,7 @@ from formula import *
 from typing import *
 from nnf import nnf
 
-DEBUG = True
+DEBUG = False
 
 
 class TableauNode:
@@ -95,6 +95,15 @@ def test():
     node = TableauNode(formulas)
     print(node.is_closed())
 
+def is_valid(formula):
+    formulas: Set[GLFormula] = {nnf(Not(formula))}
+    node = TableauNode(formulas)
+    return node.is_closed()
+
+def is_sat(formula):
+    formulas: Set[GLFormula] = {nnf(formula)}
+    node = TableauNode(formulas)
+    return not node.is_closed()
 
 if __name__ == "__main__":
-    test()
+    print(is_valid(Implies(Box(Atom("A")),Atom("A"))))
