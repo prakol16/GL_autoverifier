@@ -5,26 +5,6 @@ from collections import deque
 T = TypeVar('T')
 
 
-def any_none(ls: Iterable[Optional[bool]]) -> Optional[bool]:
-    """Returns true if any of inputs are true, and none if any are none"""
-    for x in ls:
-        if x is None:
-            return None
-        if x:
-            return True
-    return False
-
-
-def all_none(ls: Iterable[Optional[bool]]) -> Optional[bool]:
-    """Returns true if all values are true, none if any are none"""
-    for x in ls:
-        if x is None:
-            return None
-        if not x:
-            return False
-    return True
-
-
 class Node(Generic[T]):
     value: T
     parent: Optional[Node[T]]

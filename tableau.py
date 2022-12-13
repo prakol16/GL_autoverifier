@@ -84,7 +84,7 @@ class TableauNode:
 
     def is_closed(self, debug=DEBUG) -> bool:
         tree: Tree[TableauNode] = Tree(self,
-            expand_and=lambda n: copy.copy(n).expand_proposition(),
+            expand_and=lambda n: n.expand_proposition(),
             expand_or=lambda n: list(n.expand_diamonds()))
         return tree.search(debug)
 

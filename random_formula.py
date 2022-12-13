@@ -7,7 +7,7 @@ from nnf import nnf
 
 def rand_formula(depth: int) -> GLFormula:
     if depth == 0:
-        atom = Atom(chr(random.randint(ord('A'), ord('Z'))))
+        atom = Atom(chr(random.randint(ord('A'), ord('C'))))
         if random.choice([True, False]):
             return atom
         else:
@@ -49,14 +49,12 @@ if __name__ == "__main__":
     # A = Atom("A")
     # formula = Diamond(And(Box(Box(Not(A))), Diamond(Diamond(A))))
     # print(is_sat([formula]))
-    for i in tqdm(range(1000)):
+    random.seed(314159)
+    print(repr(rand_formula(3)))
+    sat_forms = set()
+    for i in tqdm(range(100)):
         formula = rand_formula(5)
-        try:
-            # print(formula)
-            is_sat([formula])
-        except Exception as e:
-            print("Exception", e)
-            print(formula)
-            print(nnf(formula))
-            # TableauNode({nnf(formula)}).is_closed(debug=True)
-            break
+        res = is_sat([formula])
+        if not res:
+            sat_forms.add(i)
+    print(sat_forms)
