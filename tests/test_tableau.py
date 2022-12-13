@@ -37,3 +37,9 @@ class Test(TestCase):
 
     def test_contingent(self):
         assert not is_valid([A], Box(A))
+
+    def test_loop(self):
+        f = Diamond(Box(A))
+        assert is_unsat([f, Diamond(Not(A)), A, Box(f), Box(Diamond(Not(A))), Box(A)])
+
+

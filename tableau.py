@@ -6,6 +6,7 @@ from nnf import nnf
 import itertools
 
 DEBUG = False
+DEBUG_DEPTH = 0
 
 
 class TableauNode:
@@ -13,6 +14,9 @@ class TableauNode:
 
     def add_formula(self, f: GLFormula):
         self.formulas[f.head].add(f)
+
+    def contains_formula(self, f: GLFormula) -> bool:
+        return f in self.formulas[f.head]
 
     def add_formulas(self, formulas: Set[GLFormula]):
         """Add a set of formulas by sorting by head symbol"""
@@ -64,7 +68,7 @@ class TableauNode:
     def expand_diamonds(self) -> Iterable[TableauNode]:
         """Expand diamonds"""
         if DEBUG:
-            print("Expanding diamonds in ", self)
+            print("\t" * DEBUG_DEPTH + "Expanding diamonds in ", self)
         for f in self.formulas[HeadSymbol.DIAMOND]:
             new_node = TableauNode(set())
             new_node.formulas[HeadSymbol.BOX] = self.formulas[HeadSymbol.BOX].copy()
@@ -72,7 +76,8 @@ class TableauNode:
                 new_node.add_formula(g.f)
             new_node.add_formula(f.f)
             new_node.add_formula(nnf(Box(Not(f.f))))
-            yield new_node
+            if new_node.formulas != self.formulas:
+                yield new_node
 
     def is_contradiction(self) -> bool:
         # Checks if there is an atom whose negation is also in the formula
@@ -82,10 +87,15 @@ class TableauNode:
         return False
 
     def is_closed(self) -> bool:
+        global DEBUG_DEPTH
         if DEBUG:
-            print("Determining if", self, "is closed")
+            print("\t" * DEBUG_DEPTH + "Determining if", self, "is closed")
+            DEBUG_DEPTH += 1
         children = self.expand_proposition()
-        return all(any(c.is_closed() for c in child.expand_diamonds()) for child in children)
+        print("\t" * DEBUG_DEPTH + "Num Children", len(children))
+        res = all(any(c.is_closed() for c in child.expand_diamonds()) for child in children)
+        DEBUG_DEPTH -= 1
+        return res
 
 
 def is_unsat(formulas: Iterable[GLFormula]) -> bool:
@@ -104,8 +114,10 @@ def is_sat(formulas: Iterable[GLFormula]):
 
 
 if __name__ == "__main__":
-    is_consistent = Diamond(GLTrue)
-    print(is_valid(
-        [is_consistent],
-        Not(Box(is_consistent))
-    ))
+    # ♢☐R, ♢¬R, R, ☐♢☐R, ☐♢¬R, ☐R
+    # ♢☐R, ♢¬R, R, ☐♢☐R, ☐♢¬R, ☐R
+    R = Atom("S")
+    F = Diamond(Box(R))
+    print(is_unsat([F, Diamond(Not(R)), R, Box(F), Box(Diamond(Not(R))), Box(R)]))
+
+# diamond(box(R)), box(diamond(box(R)))
