@@ -41,6 +41,10 @@ def simplify(formula):
         return presimplify(Or(simplify(formula.left), simplify(formula.right)))
     if formula.head == HeadSymbol.IMPLIES:
         return presimplify(Implies(simplify(formula.left), simplify(formula.right)))
+    if formula.head == HeadSymbol.BOX:
+        return presimplify(Box(simplify(formula.f)))
+    if formula.head == HeadSymbol.DIAMOND:
+        return presimplify(Diamond(simplify(formula.f)))
     return formula
 
 def prennf(formula):
@@ -50,18 +54,23 @@ def prennf(formula):
         return Or(prennf(formula.left), prennf(formula.right))
     if formula.head == HeadSymbol.IMPLIES:
         return Or(prennf(Not(formula.left)), prennf(formula.right))
-    if formula.head == HeadSymbol.NOT and formula.f.head == HeadSymbol.NOT:
-        return prennf(formula.f.f)
-    if formula.head == HeadSymbol.NOT and formula.f.head == HeadSymbol.AND:
-        return Or(prennf(Not(formula.f.left)), prennf(Not(formula.f.right)))
-    if formula.head == HeadSymbol.NOT and formula.f.head == HeadSymbol.OR:
-        return And(prennf(Not(formula.f.left)), prennf(Not(formula.f.right)))
-    if formula.head == HeadSymbol.NOT and formula.f.head == HeadSymbol.IMPLIES:
-        return And(prennf(formula.f.left), prennf(Not(formula.f.right)))
-    if formula.head == HeadSymbol.NOT and formula.f.head == HeadSymbol.BOX:
-        return Diamond(prennf(Not(formula.f.f)))
-    if formula.head == HeadSymbol.NOT and formula.f.head == HeadSymbol.DIAMOND:
-        return Box(prennf(Not(formula.f.f)))
+    if formula.head == HeadSymbol.BOX:
+        return Box(prennf(formula.f))
+    if formula.head == HeadSymbol.DIAMOND:
+        return Diamond(prennf(formula.f))
+    if formula.head == HeadSymbol.NOT:
+        if formula.f.head == HeadSymbol.NOT:
+            return prennf(formula.f.f)
+        if formula.f.head == HeadSymbol.AND:
+            return Or(prennf(Not(formula.f.left)), prennf(Not(formula.f.right)))
+        if formula.f.head == HeadSymbol.OR:
+            return And(prennf(Not(formula.f.left)), prennf(Not(formula.f.right)))
+        if formula.f.head == HeadSymbol.IMPLIES:
+            return And(prennf(formula.f.left), prennf(Not(formula.f.right)))
+        if formula.f.head == HeadSymbol.BOX:
+            return Diamond(prennf(Not(formula.f.f)))
+        if formula.f.head == HeadSymbol.DIAMOND:
+            return Box(prennf(Not(formula.f.f)))
     return formula
 
 

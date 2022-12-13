@@ -18,3 +18,7 @@ if __name__ == "__main__":
     I = Not(Box(Not(Atom("A"))))
     print(I)
     print(nnf(I))
+
+    print(nnf(Box(Not(Not(Atom("A"))))))
+
+    print(nnf(Not(And(Atom("A"), Atom("B")))))
