@@ -1,4 +1,5 @@
 from enum import Enum
+from dataclasses import dataclass
 from typing import *
 
 class GLFormula:
@@ -14,9 +15,9 @@ class Connectives(Enum):
         return ["⋀", "⋁", "⭢"][self.value]
 
 
+@dataclass(frozen=True)
 class Atom(GLFormula):
-    def __init__(self, ident: str):
-        self.ident = ident
+    ident: str
 
     def __str__(self):
         return self.ident
@@ -24,40 +25,34 @@ class Atom(GLFormula):
     def is_false(self) -> bool:
         return self.ident == "⊥"
 
+
+@dataclass(frozen=True)
 class Conjunction(GLFormula):
-    def __init__(self, conj: Connectives, left: GLFormula, right: GLFormula):
-        self.conj = conj
-        self.left = left
-        self.right = right
+    conj: Connectives
+    left: GLFormula
+    right: GLFormula
 
     def __str__(self):
         return f'({self.left} {self.conj} {self.right})'
 
-
-def And(left: GLFormula, right: GLFormula): return Conjunction(Connectives.AND, left, right)
-def Or(left: GLFormula, right: GLFormula): return Conjunction(Connectives.OR, left, right)
-def Implies(left: GLFormula, right: GLFormula): return Conjunction(Connectives.IMPLIES, left, right)
-
-
+@dataclass(frozen=True)
 class Not(GLFormula):
-    def __init__(self, f: GLFormula):
-        self.f = f
+    f: GLFormula
 
     def __str__(self):
         return "¬" + str(self.f)
 
-
+@dataclass(frozen=True)
 class Box(GLFormula):
-    def __init__(self, f: GLFormula):
-        self.f = f
+    f: GLFormula
 
     def __str__(self):
         return "☐" + str(self.f)
 
 
+@dataclass(frozen=True)
 class Diamond(GLFormula):
-    def __init__(self, f: GLFormula):
-        self.f = f
+    f: GLFormula
 
     def __str__(self):
         return "♢" + str(self.f)
@@ -65,3 +60,8 @@ class Diamond(GLFormula):
 
 GLFalse: GLFormula = Atom("⊥")
 GLTrue: GLFormula = Not(Atom("⊥"))
+
+def And(left: GLFormula, right: GLFormula): return Conjunction(Connectives.AND, left, right)
+def Or(left: GLFormula, right: GLFormula): return Conjunction(Connectives.OR, left, right)
+def Implies(left: GLFormula, right: GLFormula): return Conjunction(Connectives.IMPLIES, left, right)
+
