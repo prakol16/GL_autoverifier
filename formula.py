@@ -1,9 +1,21 @@
 from enum import Enum
 from dataclasses import dataclass
-from typing import *
+
+
+class HeadSymbol(Enum):
+    AND = 0
+    OR = 1
+    IMPLIES = 2
+    NOT = 3
+    BOX = 4
+    DIAMOND = 5
+    ATOM = 6
+
 
 class GLFormula:
-    pass
+    @property
+    def head(self) -> HeadSymbol:
+        pass
 
 
 class Connectives(Enum):
@@ -13,6 +25,9 @@ class Connectives(Enum):
 
     def __str__(self):
         return ["⋀", "⋁", "⭢"][self.value]
+
+    def to_head(self) -> HeadSymbol:
+        return [HeadSymbol.AND, HeadSymbol.OR, HeadSymbol.IMPLIES][self.value]
 
 
 @dataclass(frozen=True)
@@ -25,6 +40,9 @@ class Atom(GLFormula):
     def is_false(self) -> bool:
         return self.ident == "⊥"
 
+    def head(self) -> HeadSymbol:
+        return HeadSymbol.ATOM
+
 
 @dataclass(frozen=True)
 class Conjunction(GLFormula):
@@ -35,12 +53,20 @@ class Conjunction(GLFormula):
     def __str__(self):
         return f'({self.left} {self.conj} {self.right})'
 
+    def head(self) -> HeadSymbol:
+        return self.conj.to_head()
+
+
 @dataclass(frozen=True)
 class Not(GLFormula):
     f: GLFormula
 
     def __str__(self):
         return "¬" + str(self.f)
+
+    def head(self) -> HeadSymbol:
+        return HeadSymbol.NOT
+
 
 @dataclass(frozen=True)
 class Box(GLFormula):
@@ -49,6 +75,9 @@ class Box(GLFormula):
     def __str__(self):
         return "☐" + str(self.f)
 
+    def head(self) -> HeadSymbol:
+        return HeadSymbol.BOX
+
 
 @dataclass(frozen=True)
 class Diamond(GLFormula):
@@ -56,6 +85,9 @@ class Diamond(GLFormula):
 
     def __str__(self):
         return "♢" + str(self.f)
+
+    def head(self) -> HeadSymbol:
+        return HeadSymbol.DIAMOND
 
 
 GLFalse: GLFormula = Atom("⊥")
