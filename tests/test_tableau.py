@@ -31,3 +31,9 @@ class Test(TestCase):
 
     def test_lob(self):
         assert is_valid([Box(Implies(Box(A), A))], Box(A))
+
+    def test_self_hating_consistent(self):
+        assert is_sat([Not(is_consistent)])
+
+    def test_contingent(self):
+        assert not is_valid([A], Box(A))
