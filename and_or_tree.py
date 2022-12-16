@@ -16,23 +16,12 @@ class Node(Generic[T]):
     invalid: bool = False
     is_and: bool
     depth: int
-    cost: float = 1
 
-    def __init__(self, value: T, parent: Optional[Node[T]], is_and: bool, cost=None):
+    def __init__(self, value: T, parent: Optional[Node[T]], is_and: bool):
         self.value = value
         self.parent = parent
         self.is_and = is_and
         self.depth = 0 if parent is None else parent.depth + 1
-        if cost is not None:
-            self.cost = cost
-
-    def __lt__(self, other: Node[T]):
-        # We do this to avoid 2**(-depth) becoming very small when depth becomes large
-        return self.depth < other.depth
-        # if self.depth <= other.depth:
-        #     return depth_penalty**(other.depth - self.depth) * self.cost > other.cost
-        # else:
-        #     return self.cost > other.cost * depth_penalty**(self.depth - other.depth)
 
     def refresh_result(self) -> Optional[T]:
         if self.children is None:
@@ -76,15 +65,12 @@ class Tree(Generic[T]):
     root: Node[T]
     expand_and: Callable[[T], List[T]]
     expand_or: Callable[[T], List[T]]
-    cost: Callable[[T], float]
 
     def __init__(self, start: T, expand_and: Callable[[T], List[T]],
-                                 expand_or: Callable[[T], List[T]],
-                                 cost: Callable[[T], float]):
+                                 expand_or: Callable[[T], List[T]]):
         self.root = Node(start, None, True)
         self.expand_and = expand_and
         self.expand_or = expand_or
-        self.cost = cost
 
     def local_depth_first(self, root: Node, max_iters=40):
         stack: List[Node] = [root]
