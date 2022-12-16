@@ -52,8 +52,8 @@ def bench_hard_sat():
 
 
 if __name__ == "__main__":
-    # bench_depth5()
-    # bench_depth6()
+    bench_depth5()
+    bench_depth6()
     bench_depth7()
     bench_hard()
     bench_hard_sat()
