@@ -51,6 +51,6 @@ class Test(TestCase):
     def test_rand2(self):
         random.seed(314159)
         # Ensure random algorithm hasn't changed; note variables were generated A-C
-        assert rand_formula(3) == Not(Or(Implies(Not(And(Not(C), C)), Or(A, Not(A))), And(Not(Implies(Not(B), Not(B))), Or(Not(A), B))))
+        assert rand_formula(3, 'C') == Not(Or(Implies(Not(And(Not(C), C)), Or(A, Not(A))), And(Not(Implies(Not(B), Not(B))), Or(Not(A), B))))
         # Precomputed set of values
-        assert {i for i in range(100) if is_unsat([rand_formula(5)])} == {1, 66, 98, 68, 10, 11, 13, 84, 21, 56, 25}
+        assert {i for i in range(100) if is_unsat([rand_formula(5, 'C')])} == {1, 66, 98, 68, 10, 11, 13, 84, 21, 56, 25}

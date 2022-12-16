@@ -1,8 +1,9 @@
 from abc import abstractmethod
 from enum import Enum
 from dataclasses import dataclass
-from functools import reduce
+from functools import reduce, cached_property
 from typing import List
+
 
 class HeadSymbol(Enum):
     AND = 0
@@ -15,9 +16,23 @@ class HeadSymbol(Enum):
 
 
 class GLFormula:
+    _cached_nested_diamonds = None
+
     @property
     def head(self) -> HeadSymbol:
         pass
+
+    @cached_property
+    def nested_diamonds(self):
+        """Determines how many times Diamons are nested in `f`"""
+        if self.head == HeadSymbol.DIAMOND:
+            return self.f.nested_diamonds + 1
+        elif self.head == HeadSymbol.BOX or self.head == HeadSymbol.NOT:
+            return self.f.nested_diamonds
+        elif isinstance(self, Conjunction):
+            return max(self.left.nested_diamonds, self.right.nested_diamonds)
+        else:
+            return 0
 
 
 class Connectives(Enum):

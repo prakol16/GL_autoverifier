@@ -1,5 +1,7 @@
 from __future__ import annotations
 import copy
+
+import formula
 from formula import *
 from typing import *
 from nnf import nnf
@@ -10,13 +12,13 @@ DEBUG = False
 
 
 class TableauNode:
-    formulas: Dict[HeadSymbol, Set[GLFormula]]
+    formulas: List[Set[GLFormula]]
 
     def add_formula(self, f: GLFormula):
-        self.formulas[f.head].add(f)
+        self.formulas[f.head.value].add(f)
 
     def contains_formula(self, f: GLFormula) -> bool:
-        return f in self.formulas[f.head]
+        return f in self.formulas[f.head.value]
 
     def add_formulas(self, formulas: Set[GLFormula]):
         """Add a set of formulas by sorting by head symbol"""
@@ -24,32 +26,40 @@ class TableauNode:
             self.add_formula(f)
 
     def __init__(self, formulas: Set[GLFormula]):
-        self.formulas = {h: set() for h in HeadSymbol}
+        self.formulas = [set() for _ in HeadSymbol]
         # Get the formulas sorted by head node
         self.add_formulas(formulas)
 
     def expand_conjunctions(self):
-        """Expand non-branching patterns i.e. conjunctions"""
-        while self.formulas[HeadSymbol.AND]:
-            f: Conjunction = self.formulas[HeadSymbol.AND].pop()
+        """Expand non-branching patterns i.e. conjunctions; note that this is in-place
+        but this is intended"""
+        while self.formulas[HeadSymbol.AND.value]:
+            f: Conjunction = self.formulas[HeadSymbol.AND.value].pop()
             self.add_formula(f.left)
             self.add_formula(f.right)
 
     def __str__(self):
-        return ", ".join(str(f) for fs in self.formulas.values() for f in fs)
+        return ", ".join(str(f) for fs in self.formulas for f in fs)
 
     def __copy__(self):
         node = TableauNode(set())
-        node.formulas = {k: {f for f in v} for k, v in self.formulas.items()}
+        node.formulas = [{f for f in v} for v in self.formulas]
         return node
 
-    def expand_disjunction(self) -> (TableauNode, TableauNode):
-        """Expand a single disjunction"""
-        disj: Conjunction = self.formulas[HeadSymbol.OR].pop()
+    def expand_disjunction(self) -> (TableauNode, Optional[TableauNode]):
+        """Expand a single disjunction; does not modify this node"""
+        disj: Conjunction = self.formulas[HeadSymbol.OR.value].pop()
+        if self.contains_formula(disj.left):
+            return self, None
+        if self.contains_formula(disj.right):
+            return self, None
+
         left = copy.copy(self)
         right = copy.copy(self)
         left.add_formula(disj.left)
         right.add_formula(disj.right)
+        # Add the popped formula back
+        self.add_formula(disj)
         return left, right
 
     def expand_proposition(self) -> List[TableauNode]:
@@ -58,27 +68,30 @@ class TableauNode:
         self.expand_conjunctions()
         if self.is_contradiction():
             return []
-        if self.formulas[HeadSymbol.OR]:
+        if self.formulas[HeadSymbol.OR.value]:
             left, right = self.expand_disjunction()
-            return left.expand_proposition() + right.expand_proposition()
+            return left.expand_proposition() + ([] if right is None else right.expand_proposition())
         else:
             return [self]
 
     def expand_diamonds(self) -> Iterable[TableauNode]:
         """Expand diamonds"""
-        for f in self.formulas[HeadSymbol.DIAMOND]:
+        for f in self.formulas[HeadSymbol.DIAMOND.value]:
             new_node = TableauNode(set())
-            new_node.formulas[HeadSymbol.BOX] = self.formulas[HeadSymbol.BOX].copy()
-            for g in self.formulas[HeadSymbol.BOX]:
+            new_node.formulas[HeadSymbol.BOX.value] = self.formulas[HeadSymbol.BOX.value].copy()
+            for g in self.formulas[HeadSymbol.BOX.value]:
                 new_node.add_formula(g.f)
             new_node.add_formula(f.f)
+            new_node.add_formula(Box(Not(f.f)))
             new_node.add_formula(nnf(Box(Not(f.f))))
             yield new_node
 
     def is_contradiction(self) -> bool:
-        # Checks if there is an atom whose negation is also in the formula
-        for f in self.formulas[HeadSymbol.ATOM]:
-            if f.is_false() or Not(f) in self.formulas[HeadSymbol.NOT]:
+        for f in self.formulas[HeadSymbol.ATOM.value]:
+            if f.is_false() or Not(f) in self.formulas[HeadSymbol.NOT.value]:
+                return True
+        for f in self.formulas[HeadSymbol.NOT.value]:
+            if f.head != HeadSymbol.ATOM and self.contains_formula(f.f):
                 return True
         return False
 

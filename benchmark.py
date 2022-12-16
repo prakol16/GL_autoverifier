@@ -26,13 +26,34 @@ def bench_depth6():
     print("Timing is_unsat depth 6 on 100 formulas, 10 times, best of 5", tms) # Benchmark: 17.2s
 
 
+def bench_depth7():
+    tms = timeit.repeat(stmt="benchmark_formulas(formulas)",
+                  setup="from __main__ import benchmark_formulas; import random; from random_formula import rand_formula; random.seed(21730);"
+                        "formulas = [rand_formula(7) for _ in range(100)]",
+                  number=5,
+                  repeat=5)
+    print("Timing is_unsat depth 7 on 100 formulas, 5 times, best of 5", tms)  # 9.3s benchmark (2)
+
+
 def bench_hard():
     tms = timeit.repeat(stmt="benchmark_formulas(hard_unsat_formulas)",
                   setup="from __main__ import benchmark_formulas; from benchmark_data import hard_unsat_formulas, hard_sat_formulas;",
                   number=1,
-                  repeat=1)
-    print("Timing is_unsat on hard unsat formulas, 1 times, best of 1", tms)  # Benchmark: 14.5
+                  repeat=5)
+    print("Timing is_unsat on hard unsat formulas, 1 times, best of 5", tms)  # Benchmark: 14.5
+
+def bench_hard_sat():
+    tms = timeit.repeat(stmt="benchmark_formulas(hard_sat_formulas)",
+                  setup="from __main__ import benchmark_formulas; from benchmark_data import hard_unsat_formulas, hard_sat_formulas;",
+                  number=1,
+                  repeat=5)
+    print("Timing is_unsat on hard sat formulas, 1 times, best of 5", tms)  # Benchmark (2): 0.7s
+
 
 
 if __name__ == "__main__":
+    # bench_depth5()
+    # bench_depth6()
+    bench_depth7()
     bench_hard()
+    bench_hard_sat()
